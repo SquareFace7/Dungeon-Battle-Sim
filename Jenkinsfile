@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        // תיקון קריטי להצגת אימוג'ים בווינדוס
         PYTHONIOENCODING = 'utf-8'
     }
 
@@ -14,7 +15,7 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') { // תואם לסעיף 51 בדרישות
+        stage('Checkout Code') {
             agent { label "${params.EXECUTOR_NODE}" }
             steps {
                 echo "Running on node: ${env.NODE_NAME}"
@@ -22,16 +23,16 @@ pipeline {
             }
         }
 
-        stage('Validate Parameters') { // תואם לסעיף 52 בדרישות - חדש!
+        stage('Validate Parameters') {
             agent { label "${params.EXECUTOR_NODE}" }
             steps {
                 script {
                     echo "Validating inputs..."
-                    // בדיקה פשוטה שהרמה היא מספר הגיוני (רק בשביל הלוג)
+                    // בדיקת תקינות בסיסית לרמה
                     if (params.LEVEL.toInteger() < 1 || params.LEVEL.toInteger() > 100) {
                         error "Level must be between 1 and 100!"
                     }
-                    echo "Parameters are valid: ${params.PLAYER_NAME}, Level ${params.LEVEL}"
+                    echo "Parameters are valid: ${params.PLAYER_NAME} (Class: ${params.HERO_CLASS})"
                 }
             }
         }
@@ -40,16 +41,19 @@ pipeline {
             agent { label "${params.EXECUTOR_NODE}" }
             steps {
                  script {
+                    echo "Installing dependencies..."
                     if (isUnix()) {
+                        // פקודה ללינוקס
                         sh 'pip install -r requirements.txt --break-system-packages || pip install -r requirements.txt'
                     } else {
+                        // פקודה לווינדוס
                         bat 'python -m pip install -r requirements.txt'
                     }
                 }
             }
         }
 
-        stage('Run Script & Generate HTML') { // תואם לסעיפים 53+54 בדרישות
+        stage('Run Script & Generate HTML') {
             agent { label "${params.EXECUTOR_NODE}" }
             steps {
                 script {
@@ -68,7 +72,9 @@ pipeline {
 
     post {
         always {
-            archiveArtifacts artifacts: '*.html, *.txt', allowEmptyArchive: true
+            // כאן התיקון לעיצוב: הוספתי גם *.css לרשימה
+            archiveArtifacts artifacts: '*.html, *.txt, *.css', allowEmptyArchive: true
+            
             publishHTML (target: [
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
