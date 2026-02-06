@@ -1,5 +1,11 @@
 pipeline {
-    agent { label 'windows' }  // מוודא שזה ירוץ על המחשב שלך
+    agent { label 'windows' }
+
+    // --- התיקון נמצא כאן ---
+    environment {
+        PYTHONIOENCODING = 'utf-8'
+    }
+    // ----------------------
 
     parameters {
         string(name: 'PLAYER_NAME', defaultValue: 'Eliad', description: 'Name of the Hero')
@@ -9,16 +15,17 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                // ג'נקינס מוריד את הקוד אוטומטית
                 checkout scm
+                echo 'Code successfully pulled from GitHub.'
             }
         }
 
         stage('Install Requirements') {
             steps {
-                echo 'Installing Python dependencies...'
+                echo 'Installing dependencies...'
+                // השינוי שעשינו קודם נשאר כאן
                 bat 'python -m pip install -r requirements.txt'
             }
         }
@@ -26,11 +33,9 @@ pipeline {
         stage('Run Game Simulation') {
             steps {
                 script {
-                    // יצירת תאריך אוטומטי
                     def date = new Date().format("yyyy-MM-dd")
-                    echo "Running game for user: ${params.PLAYER_NAME}"
+                    echo "Starting battle for: ${params.PLAYER_NAME}..."
                     
-                    // הרצת הסקריפט עם הפרמטרים מהמשתמש
                     bat "python dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\""
                 }
             }
@@ -39,8 +44,8 @@ pipeline {
 
     post {
         always {
-            // שמירת התוצאות (HTML + Log) כדי שתוכל לראות אותן בג'נקינס
             archiveArtifacts artifacts: '*.html, *.txt', allowEmptyArchive: true
+            echo 'Battle report archived!'
         }
     }
 }
