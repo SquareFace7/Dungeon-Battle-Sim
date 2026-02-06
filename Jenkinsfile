@@ -58,12 +58,19 @@ pipeline {
             steps {
                 script {
                     def date = new Date().format("yyyy-MM-dd")
-                    echo "Starting battle simulation..."
+                    
+                    // --- התיקון נמצא כאן ---
+                    // בדיקה: האם המשתמש סימן הארדקור? אם כן, נוסיף את הדגל לפקודה
+                    def hardcoreFlag = params.HARDCORE_MODE ? '--hardcore_mode' : ''
+                    
+                    echo "Starting battle simulation with flags: ${hardcoreFlag}..."
                     
                     if (isUnix()) {
-                        sh "python3 dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\""
+                        // הוספתי את ${hardcoreFlag} בסוף הפקודה
+                        sh "python3 dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\" ${hardcoreFlag}"
                     } else {
-                        bat "python dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\""
+                        // הוספתי את ${hardcoreFlag} בסוף הפקודה
+                        bat "python dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\" ${hardcoreFlag}"
                     }
                 }
             }
@@ -72,7 +79,6 @@ pipeline {
 
     post {
         always {
-            // כאן התיקון לעיצוב: הוספתי גם *.css לרשימה
             archiveArtifacts artifacts: '*.html, *.txt, *.css', allowEmptyArchive: true
             
             publishHTML (target: [
