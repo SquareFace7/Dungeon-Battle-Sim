@@ -14,24 +14,47 @@ pipeline {
     }
 
     stages {
-        stage('Game Execution') {
+        stage('Checkout') { // תואם לסעיף 51 בדרישות
             agent { label "${params.EXECUTOR_NODE}" }
-            
             steps {
                 echo "Running on node: ${env.NODE_NAME}"
                 checkout scm
-                
+            }
+        }
+
+        stage('Validate Parameters') { // תואם לסעיף 52 בדרישות - חדש!
+            agent { label "${params.EXECUTOR_NODE}" }
+            steps {
                 script {
+                    echo "Validating inputs..."
+                    // בדיקה פשוטה שהרמה היא מספר הגיוני (רק בשביל הלוג)
+                    if (params.LEVEL.toInteger() < 1 || params.LEVEL.toInteger() > 100) {
+                        error "Level must be between 1 and 100!"
+                    }
+                    echo "Parameters are valid: ${params.PLAYER_NAME}, Level ${params.LEVEL}"
+                }
+            }
+        }
+
+        stage('Install Requirements') {
+            agent { label "${params.EXECUTOR_NODE}" }
+            steps {
+                 script {
                     if (isUnix()) {
                         sh 'pip install -r requirements.txt --break-system-packages || pip install -r requirements.txt'
                     } else {
                         bat 'python -m pip install -r requirements.txt'
                     }
                 }
+            }
+        }
 
+        stage('Run Script & Generate HTML') { // תואם לסעיפים 53+54 בדרישות
+            agent { label "${params.EXECUTOR_NODE}" }
+            steps {
                 script {
                     def date = new Date().format("yyyy-MM-dd")
-                    echo "Starting battle..."
+                    echo "Starting battle simulation..."
                     
                     if (isUnix()) {
                         sh "python3 dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\""
@@ -45,7 +68,7 @@ pipeline {
 
     post {
         always {
-            // זה החלק החדש שיוצר את הכפתור!
+            archiveArtifacts artifacts: '*.html, *.txt', allowEmptyArchive: true
             publishHTML (target: [
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
