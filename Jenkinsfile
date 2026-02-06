@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        // תיקון קריטי להצגת אימוג'ים בווינדוס
         PYTHONIOENCODING = 'utf-8'
     }
 
@@ -15,6 +14,15 @@ pipeline {
     }
 
     stages {
+        // --- שלב חדש: ניקוי שולחן ---
+        stage('Clean Workspace') {
+            agent { label "${params.EXECUTOR_NODE}" }
+            steps {
+                echo "Cleaning workspace..."
+                cleanWs() // מוחק הכל! מבטיח שלא יישארו קבצים ישנים
+            }
+        }
+        
         stage('Checkout Code') {
             agent { label "${params.EXECUTOR_NODE}" }
             steps {
@@ -28,11 +36,10 @@ pipeline {
             steps {
                 script {
                     echo "Validating inputs..."
-                    // בדיקת תקינות בסיסית לרמה
                     if (params.LEVEL.toInteger() < 1 || params.LEVEL.toInteger() > 100) {
                         error "Level must be between 1 and 100!"
                     }
-                    echo "Parameters are valid: ${params.PLAYER_NAME} (Class: ${params.HERO_CLASS})"
+                    echo "Parameters are valid: ${params.PLAYER_NAME}"
                 }
             }
         }
@@ -43,10 +50,8 @@ pipeline {
                  script {
                     echo "Installing dependencies..."
                     if (isUnix()) {
-                        // פקודה ללינוקס
                         sh 'pip install -r requirements.txt --break-system-packages || pip install -r requirements.txt'
                     } else {
-                        // פקודה לווינדוס
                         bat 'python -m pip install -r requirements.txt'
                     }
                 }
@@ -58,18 +63,16 @@ pipeline {
             steps {
                 script {
                     def date = new Date().format("yyyy-MM-dd")
-                    
-                    // --- התיקון נמצא כאן ---
-                    // בדיקה: האם המשתמש סימן הארדקור? אם כן, נוסיף את הדגל לפקודה
                     def hardcoreFlag = params.HARDCORE_MODE ? '--hardcore_mode' : ''
                     
-                    echo "Starting battle simulation with flags: ${hardcoreFlag}..."
+                    echo "Starting battle simulation for ${params.PLAYER_NAME}..."
                     
+                    // מחיקה כפויה של הדוח הישן (ליתר ביטחון)
                     if (isUnix()) {
-                        // הוספתי את ${hardcoreFlag} בסוף הפקודה
+                        sh "rm -f battle_report.html" 
                         sh "python3 dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\" ${hardcoreFlag}"
                     } else {
-                        // הוספתי את ${hardcoreFlag} בסוף הפקודה
+                        bat "if exist battle_report.html del battle_report.html"
                         bat "python dungeon_sim.py --player_name \"${params.PLAYER_NAME}\" --hero_class \"${params.HERO_CLASS}\" --level ${params.LEVEL} --battle_date \"${date}\" ${hardcoreFlag}"
                     }
                 }
@@ -80,7 +83,6 @@ pipeline {
     post {
         always {
             archiveArtifacts artifacts: '*.html, *.txt, *.css', allowEmptyArchive: true
-            
             publishHTML (target: [
                 allowMissing: false,
                 alwaysLinkToLastBuild: true,
