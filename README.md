@@ -3,7 +3,7 @@
 Welcome to the **Dungeon Battle Simulator**!
 This project is a DevOps demonstration of a CI/CD pipeline using **Jenkins**, **Python**, and **Groovy**. It simulates a battle between a custom Hero and a dungeon Enemy, generating detailed logs and a styled HTML report for every build.
 
-## 🚀 Key Features
+##  Key Features
 
 * **Cross-Platform Support:** The pipeline dynamically runs on either **Windows** or **Linux** agents based on user selection.
 * **Parameterized Builds:** Users can customize the simulation input directly from Jenkins:
@@ -17,7 +17,7 @@ This project is a DevOps demonstration of a CI/CD pipeline using **Jenkins**, **
 
 ---
 
-## 🛠️ Pipeline Workflow
+##  Pipeline Workflow
 
 The `Jenkinsfile` defines the following stages:
 
@@ -32,7 +32,7 @@ The `Jenkinsfile` defines the following stages:
 
 ---
 
-## 📋 Prerequisites
+##  Prerequisites
 
 To run this pipeline, you need:
 * **Jenkins** (Controller) with access to GitHub.
@@ -45,7 +45,7 @@ To run this pipeline, you need:
 
 ---
 
-## 🎮 How to Run
+##  How to Run
 
 1.  Open the Jenkins Job.
 2.  Click on **Build with Parameters**.
@@ -57,7 +57,7 @@ To run this pipeline, you need:
 
 ---
 
-## 💻 Tech Stack
+##  Tech Stack
 
 * **Logic:** Python 3 (`argparse`, `random`, `datetime`).
 * **Orchestration:** Jenkins (Declarative Pipeline).
@@ -66,5 +66,5 @@ To run this pipeline, you need:
 
 ---
 
-### 📜 License
+###  License
 This project was created for educational purposes as part of a DevOps Final Project.
